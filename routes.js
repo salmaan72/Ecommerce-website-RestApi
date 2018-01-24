@@ -6,4 +6,8 @@ routes.post('/signup',userController.signup);
 
 routes.post('/login',userController.login);
 
+routes.get('/dashboard',userController.dashboard);
+
+routes.get('/logout',userController.logout);
+
 module.exports = routes;

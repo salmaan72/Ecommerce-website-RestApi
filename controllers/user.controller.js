@@ -1,8 +1,12 @@
 "use strict";
 
 const express = require('express');
+const jwt = require('jsonwebtoken');
+
 const userModel = require('./../models/user.model');
 const userResponseGenerator = require('./../libs/user.responseGenerator');
+const config = require('./../libs/config');
+const verifyToken = require('./../middleware/verifyToken');
 
 const userController = {};
 
@@ -45,9 +49,28 @@ userController.login = function(req,res){
       res.send(response);
     }
     else{
-      res.redirect('/api/homepage');
+      jwt.sign({user: foundUser.email},config.secret,function(err,token){
+        if(err){
+          res.send(err);
+        }
+        res.cookie('token',token,{ httpOnly: true, maxAge: 900000 });
+        res.redirect('/api/dashboard');
+      });
+      //res.redirect('/api/dashboard');
     }
   })
+}
+
+userController.dashboard = function(req,res){
+  let cookie = req.headers.cookie;
+  verifyToken.verifyUserToken(cookie,function(authData){
+    res.json({ authData });
+  });
+}
+
+userController.logout = function(req,res){
+  res.clearCookie('token',{path:'/'});
+  res.redirect('/api/login');
 }
 
 module.exports = userController;
