@@ -4,7 +4,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 
 const userModel = require('./../models/user.model');
-const userResponseGenerator = require('./../libs/user.responseGenerator');
+const responseGenerator = require('./../libs/responseGenerator');
 const config = require('./../libs/config');
 const verifyToken = require('./../middleware/verifyToken');
 
@@ -23,17 +23,17 @@ userController.signup = function(req,res){
 
     newUser.save(function(err){
       if(err){
-        let response = userResponseGenerator.responseGenerator(true, 'error: '+err, 500, null);
+        let response = responseGenerator.respGen(true, 'error: '+err, 500, null);
         res.send(response);
       }
       else{
-        let response = userResponseGenerator.responseGenerator(false, 'successfully saved', 200, newUser);
+        let response = responseGenerator.respGen(false, 'successfully saved', 200, newUser);
         res.send(response);
       }
     });
   }
   else{
-    let response = userResponseGenerator.responseGenerator(true, 'some field is empty', 500, null);
+    let response = responseGenerator.respGen(true, 'some field is empty', 500, null);
     res.send(response);
   }
 }
@@ -41,11 +41,11 @@ userController.signup = function(req,res){
 userController.login = function(req,res){
   userModel.findOne({ $and:[{'email':req.body.email}, {'password':req.body.password}] }, function(err,foundUser){
     if(err){
-      let response = userResponseGenerator.responseGenerator(true, 'error: '+err, 500, null);
+      let response = responseGenerator.respGen(true, 'error: '+err, 500, null);
       res.send(response);
     }
     else if(foundUser === null || foundUser === undefined){
-      let response = userResponseGenerator.responseGenerator(true, 'wrong username/password', 500, null);
+      let response = responseGenerator.respGen(true, 'wrong username/password', 500, null);
       res.send(response);
     }
     else{
