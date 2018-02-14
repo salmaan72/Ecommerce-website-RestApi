@@ -7,19 +7,28 @@ const userModel = require('./../models/user.model');
 const responseGenerator = require('./../libs/responseGenerator');
 const config = require('./../libs/config');
 const verifyToken = require('./../middleware/verifyToken');
+const loginResponse = require('./../libs/loginResponse');
 
 const userController = {};
 
+// function to signup
 userController.signup = function(req,res){
-
+let newUser;
   if(req.body.firstname !== undefined && req.body.lastname !== undefined && req.body.password !== undefined && req.body.email !== undefined && req.body.phone !== undefined){
-    let newUser = new userModel({
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
-      password: req.body.password,
-      email: req.body.email,
-      phone: req.body.phone
-    });
+    if(req.body.password === req.body.confirmpass){
+      newUser = new userModel({
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        password: req.body.password,
+        confirmpass:req.body.confirmpass,
+        email: req.body.email,
+        phone: req.body.phone
+      });
+    }
+    else{
+      let response = responseGenerator.respGen(true,'password confirmation doesn\'t match',500,null);
+      res.send(response);
+    }
 
     newUser.save(function(err){
       if(err){
@@ -38,6 +47,7 @@ userController.signup = function(req,res){
   }
 }
 
+// function to login
 userController.login = function(req,res){
   userModel.findOne({ $and:[{'email':req.body.email}, {'password':req.body.password}] }, function(err,foundUser){
     if(err){
@@ -53,24 +63,32 @@ userController.login = function(req,res){
         if(err){
           res.send(err);
         }
-        res.cookie('token',token,{ httpOnly: true, maxAge: 900000 });
-        res.redirect('/api/dashboard');
+        let data = {
+          name: foundUser.firstname+' '+foundUser.lastname
+        }
+        res.cookie('token',token,{ httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+        let response = loginResponse.loginResp(false,'successfully logged in',foundUser.email,200,data);
+        res.send(response);
       });
       //res.redirect('/api/dashboard');
     }
   })
 }
 
+// dashboard of the user
 userController.dashboard = function(req,res){
-  let cookie = req.headers.cookie;
-  verifyToken.verifyUserToken(cookie,function(authData){
+  verifyToken.verifyUserToken(req.headers.cookie,function(authData){
     res.json({ authData });
   });
 }
 
+// function to logout
 userController.logout = function(req,res){
-  res.clearCookie('token',{path:'/'});
-  res.redirect('/api/login');
+  verifyToken.verifyUserToken(req.headers.cookie,function(authData){
+    res.clearCookie('token',{path:'/'});
+    let response = responseGenerator.respGen(false,'successfully logged out',200,null);
+    res.send(response);
+  });
 }
 
 module.exports = userController;
