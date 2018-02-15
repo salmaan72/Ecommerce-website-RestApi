@@ -17,7 +17,7 @@ routes.post('/login',userController.login);
 routes.get('/dashboard',userController.dashboard);
 
 // logout from the session
-routes.get('/logout',userController.logout);
+routes.post('/logout',userController.logout);
 
 // insert a product into the website's database
 routes.post('/insertproduct',instantiateStoreModel.instantiate, productController.insertProduct);
@@ -26,7 +26,7 @@ routes.post('/insertproduct',instantiateStoreModel.instantiate, productControlle
 routes.get('/allproducts', productController.allProducts);
 
 // display a particular product
-routes.get('/oneproduct',productController.particularProduct);
+routes.post('/oneproduct',productController.particularProduct);
 
 // delete a particular product from the website
 routes.post('/deleteproduct',instantiateStoreModel.instantiate, productController.deleteProduct);
